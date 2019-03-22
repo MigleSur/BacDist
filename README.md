@@ -17,38 +17,22 @@ The pipeline takes a number of WGS bacterial genome fastq files and outputs:
 
 Before running the pipeline, make sure that the following programs are installed and added to the path:
 
-[freebayes>=1.1.0]()
-
-[vcflib>=1.0.0-rc2]()
-
-[vcftools>=0.1.16]()
-
-[snpeff>=4.3r]()
-
-[prokka>=1.12]()
-
-[minimap2>=2.6]()
-
-[seqtk>=1.0]()
-
-[snp-sites>=2.4.0]()
-
-[emboss>=6.6.0]()
-
-[bcftools>=1.9]()
-
-[snippy>=4.1.0](https://github.com/tseemann/snippy)
-
-[vt>=0.5772]()
-
-[bcftools>=1.9]()
-
-[samtools>=1.9]()
-
-[vcftools>=0.1.16]()
-
-[raxml>=8.2.11]()
-
+[freebayes>=1.1.0]()<br/>
+[vcflib>=1.0.0-rc2]()<br/>
+[vcftools>=0.1.16]()<br/>
+[snpeff>=4.3r]()<br/>
+[prokka>=1.12]()<br/>
+[minimap2>=2.6]()<br/>
+[seqtk>=1.0]()<br/>
+[snp-sites>=2.4.0]()<br/>
+[emboss>=6.6.0]()<br/>
+[bcftools>=1.9]()<br/>
+[snippy>=4.1.0](https://github.com/tseemann/snippy)<br/>
+[vt>=0.5772]()<br/>
+[bcftools>=1.9]()<br/>
+[samtools>=1.9]()<br/>
+[vcftools>=0.1.16]()<br/>
+[raxml>=8.2.11]()<br/>
 
 ### Disclaimer
 
