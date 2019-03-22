@@ -54,10 +54,12 @@ Here is the example code for running snakemake:
 Pipeline can be rerun when new samples are added, old samples are deleted, etc. 
 
 First, all the new samples have to be added to the sample directory.
+
 Second, the following directories have to be deleted:
-	* temp
-	* output_files
-	* vcf_calls 
+* temp
+* output_files
+* vcf_calls 
+
 After completing the steps a pipeline can be rerun with different samples.
 
 ## Author
