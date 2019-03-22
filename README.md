@@ -17,6 +17,42 @@ The pipeline takes a number of WGS bacterial genome fastq files and outputs:
 
 Before running the pipeline, make sure that the following programs are installed and added to the path:
 
+[freebayes>=1.1.0]()
+
+[vcflib>=1.0.0-rc2]()
+
+[vcftools>=0.1.16]()
+
+[snpeff>=4.3r]()
+
+[prokka>=1.12]()
+
+[minimap2>=2.6]()
+
+[seqtk>=1.0]()
+
+[snp-sites>=2.4.0]()
+
+[emboss>=6.6.0]()
+
+[bcftools>=1.9]()
+
+[snippy>=4.1.0](https://github.com/tseemann/snippy)
+
+[vt>=0.5772]()
+
+[bcftools>=1.9]()
+
+[samtools>=1.9]()
+
+[vcftools>=0.1.16]()
+
+[raxml>=8.2.11]()
+
+
+### Disclaimer
+
+[Snippy4](https://github.com/tseemann/snippy) doesn't work with python3. Python3 should be disabled at that step and Python2 should be available.
 
 ## Setting up the config.yaml file 
 
