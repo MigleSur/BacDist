@@ -37,9 +37,12 @@ name: "AX01"
 ## Running the pipeline 
 
 In order to run the pipeline anaconda3 (version 4.0.0) has to be available. Snakemake is started from its directory directory:
-    -j option allows to choose the number of threads (1-28) used for the analysis (default:1)
-    --configfile option allows to chose the configuration file for the analysis
-	
+    
+```
+-j option allows to choose the number of threads (1-28) used for the analysis (default:1)
+--configfile option allows to chose the configuration file for the analysis
+```
+
 Here is the example code for running snakemake:
 
 ```bash
