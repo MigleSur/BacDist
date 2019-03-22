@@ -17,22 +17,26 @@ The pipeline takes a number of WGS bacterial genome fastq files and outputs:
 
 Before running the pipeline, make sure that the following programs are installed and added to the path:
 
-[freebayes>=1.1.0]()<br/>
-[vcflib>=1.0.0-rc2]()<br/>
-[vcftools>=0.1.16]()<br/>
-[snpeff>=4.3r]()<br/>
-[prokka>=1.12]()<br/>
-[minimap2>=2.6]()<br/>
-[seqtk>=1.0]()<br/>
-[snp-sites>=2.4.0]()<br/>
-[emboss>=6.6.0]()<br/>
-[bcftools>=1.9]()<br/>
+GNU parallel >=2013xxxx<br/>
+Perl>=5.12<br/>
+Perl Modules: Time::Piece (core with modern Perl), Bioperl >= 1.6 <br/>
+[bwa mem>=0.7.12](http://bio-bwa.sourceforge.net/)<br/>
+[readseq>=2.0](http://iubio.bio.indiana.edu/soft/molbio/readseq/java/)<br/>
+[samclip>=0.2](https://github.com/tseemann/samclip)<br/>
+[bedtools>2.0](https://bedtools.readthedocs.io/en/latest/)<br/>
+[freebayes>=1.1](https://github.com/ekg/freebayes)<br/>
+[vcflib>=1.0](https://github.com/vcflib/vcflib)<br/>
+[vcftools>=0.1.16](http://vcftools.sourceforge.net/)<br/>
+[snpeff>=4.3](http://snpeff.sourceforge.net/)<br/>
+[minimap2>=2.6](https://github.com/lh3/minimap2)<br/>
+[seqtk>=1.2](https://github.com/lh3/seqtk)<br/>
+[snp-sites>=2.0](https://github.com/sanger-pathogens/snp-sites)<br/>
 [snippy>=4.1.0](https://github.com/tseemann/snippy)<br/>
-[vt>=0.5772]()<br/>
-[bcftools>=1.9]()<br/>
-[samtools>=1.9]()<br/>
-[vcftools>=0.1.16]()<br/>
-[raxml>=8.2.11]()<br/>
+[vt>=0.5](https://genome.sph.umich.edu/wiki/Vt)<br/>
+[bcftools>=1.9](https://samtools.github.io/bcftools/bcftools.html)<br/>
+[samtools>=1.9](http://www.htslib.org/doc/samtools.html)<br/>
+[raxml>=8.2.11](https://cme.h-its.org/exelixis/software.html)<br/>
+
 
 ### Disclaimer
 
