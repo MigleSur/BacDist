@@ -21,16 +21,18 @@ Before running the pipeline, make sure that the following programs are installed
 ## Setting up the config.yaml file 
 
 In order for the pipeline to run, a configuration file is needed. A configuration file requires 4 fields to be present: 
-	* sample_dir - Directory in which all fastq files which need to be analyzed are present.
-	* output_dir - Output directory where all the output files will be created.
-	* ref - Reference genome in gbk format. 
-	* name - Chosen name for the analysis. The name is used as a prefix in output and intermediate files.
+* sample_dir - Directory in which all fastq files which need to be analyzed are present.
+* output_dir - Output directory where all the output files will be created.
+* ref - Reference genome in gbk format. 
+* name - Chosen name for the analysis. The name is used as a prefix in output and intermediate files.
 
 Here is the example configuration file:
+```
 sample_dir: "/home/project_name/fastq"
 output_dir: "/home/project_name/AX01"
 ref: "/home/reference_genomes/GCF_001457475.1_NCTC10807_genomic.gbk"
 name: "AX01"
+```
 
 ## Running the pipeline 
 
