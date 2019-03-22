@@ -6,8 +6,11 @@ Snakemake pipeline for bacterial SNP distance and phylogeny analysis
 All the code is in the Snakefile and is written in snakemake.
 
 The pipeline takes a number of WGS bacterial genome fastq files and outputs:
+
 	(1) the VCF file with unique (minimum one sample doesn't have the variant), high quality variants
+	
 	(2) SNP-distance matrix based on the filtered VCF file
+	
 	(3) phylogenetic tree (if more than 3 samples were used for the analysis) based on the filtered VCF file and created using RAxML
 
 ## Required software
