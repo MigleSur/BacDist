@@ -50,9 +50,7 @@ rule run_snippy:
 		outdir=expand("{outdir}",outdir=config["output_dir"]),
 		ref=config['ref'],
 		prefix="{sample}",
-		cpus=10,
-		mincov=1,
-		minqual=50
+		cpus=10
 	log:
 		expand("{outdir}/logs/snippy_{{sample}}.log",outdir=config["output_dir"])
 	message:
@@ -74,7 +72,7 @@ rule run_snippy:
                 module load snippy/4.1.0
                 module load vt/0.5772
 	
-		(snippy --outdir {params.outdir}/raw_vcf_calls/{params.prefix} --ref {params.ref} --R1 {input.R1} --R2 {input.R2} --prefix {params.prefix} --cpus {params.cpus}  --force --mincov {params.mincov} --minqual {params.minqual}) 2> {log}
+		(snippy --outdir {params.outdir}/raw_vcf_calls/{params.prefix} --ref {params.ref} --R1 {input.R1} --R2 {input.R2} --prefix {params.prefix} --cpus {params.cpus}  --force) 2> {log}
 		"""
 
 
