@@ -58,6 +58,14 @@ ref: "/home/reference_genomes/GCF_001457475.1_NCTC10807_genomic.gbk"
 name: "AX01"
 ```
 
+## Input file requirement
+
+Input file format should follow the following:
+```
+[prefix]_R1_001.fastq.gz 
+[prefix]_R2_001.fastq.gz
+```
+
 ## Running the pipeline 
 
 In order to run the pipeline anaconda3 (version 4.0.0) has to be available. Snakemake is started from its directory directory:
