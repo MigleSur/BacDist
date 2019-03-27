@@ -58,6 +58,10 @@ rule run_snippy:
 	shell:
 		"""
                 module unload anaconda3/4.0.0
+		module load anaconda2/4.0.0
+                module load samtools/1.8
+		module load perl/5.24.0
+		module load bwa/0.7.15
 		module load parallel/20170822
                 module load freebayes/1.1.0-50-g61527c5
                 module load vcflib/1.0.0-rc2
@@ -70,7 +74,7 @@ rule run_snippy:
                 module load emboss/6.6.0
                 module load bcftools/1.9
                 module load snippy/4.1.0
-                module load vt/0.5772
+		module load vt/0.5772
 	
 		(snippy --outdir {params.outdir}/raw_vcf_calls/{params.prefix} --ref {params.ref} --R1 {input.R1} --R2 {input.R2} --prefix {params.prefix} --cpus {params.cpus}  --force) 2> {log}
 		"""
@@ -137,6 +141,7 @@ rule extract_low_coverage_positions:
 		low_qual=temp(expand("{outdir}/temp/{{sample}}_low_qual",  outdir=config["output_dir"]))
 	shell:
 		"""
+		module load samtools/1.8
 		samtools depth -b {input.bed} {input.bam} | awk '$3<10 {{print $1,$2-1,$2}}' | tr " " "\t" > {output.low_qual}
 		"""
 
@@ -197,7 +202,7 @@ rule AF_by_position_calculation:
 		depth=10000
 	shell:	
 		"""
-		module load samtools/1.9
+		module load samtools/1.8
 
 		(while read chr pos
 		do
@@ -334,7 +339,8 @@ rule generate_raxml_tree:
 		(raxmlHPC -n {params.name} -s {input.multi_fasta} -m {params.method} -p {params.p} -w {params.dir}) 2> {log}
 		"""
 
-first_sample_ID=IDS[0]
+if len(IDS)>0:
+	first_sample_ID=IDS[0]
 
 consensus_fasta_list = ''.join((output,'/raw_vcf_calls/',first_sample_ID,'/reference/ref.fa'))
 
