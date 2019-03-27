@@ -42,6 +42,8 @@ Perl Modules: Time::Piece (core with modern Perl), Bioperl >= 1.6 <br/>
 
 [Snippy4](https://github.com/tseemann/snippy) doesn't work with python3. Python3 should be disabled at that step and Python2 should be available.
 
+Reference genome should not contain plasmid sequences for the results to be more accurate. More than one chromosome in the reference genome is acceptable and can be used if needed.
+
 ## Setting up the config.yaml file 
 
 In order for the pipeline to run, a configuration file is needed. A configuration file requires 4 fields to be present: 
