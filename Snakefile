@@ -50,7 +50,11 @@ rule run_snippy:
 		outdir=expand("{outdir}",outdir=config["output_dir"]),
 		ref=config['ref'],
 		prefix="{sample}",
-		cpus=10
+		cpus=10,
+		mapqual=50,
+		mincov=10,
+		minfrac=0.5,
+		minqual=50
 	log:
 		expand("{outdir}/logs/snippy_{{sample}}.log",outdir=config["output_dir"])
 	message:
@@ -76,7 +80,7 @@ rule run_snippy:
                 module load snippy/4.1.0
 		module load vt/0.5772
 	
-		(snippy --outdir {params.outdir}/raw_vcf_calls/{params.prefix} --ref {params.ref} --R1 {input.R1} --R2 {input.R2} --prefix {params.prefix} --cpus {params.cpus}  --force) 2> {log}
+		(snippy --outdir {params.outdir}/raw_vcf_calls/{params.prefix} --ref {params.ref} --R1 {input.R1} --R2 {input.R2} --prefix {params.prefix} --cpus {params.cpus} --mapqual {params.mapqual} --mincov {params.mincov} --minfrac {params.minfrac} --minqual {params.minqual}  --force) 2> {log}
 		"""
 
 
@@ -288,12 +292,19 @@ rule create_multi_fasta:
 	input:
 		fasta_list=consensus_fasta_list
 	output:
-		multi_fasta=expand("{outdir}/output_files/{name}_final_filtered.fa", outdir=config["output_dir"], name=config["name"])
+		multi_fasta=expand("{outdir}/output_files/{name}_final_filtered.fa", outdir=config["output_dir"], name=config["name"]),
+		temp_oneliner=temp(expand("{outdir}/output_files/{name}_final_filtered_temp_oneliner.fa", outdir=config["output_dir"], name=config["name"])),
+		temp_out=temp(expand("{outdir}/output_files/{name}_final_filtered_temp.fa", outdir=config["output_dir"], name=config["name"]))
 	message:
 		"Creating a multi-FASTA file for all samples"
 	shell:
 		"""
-		cat {input.fasta_list} > {output.multi_fasta}
+		cat {input.fasta_list} > {output.temp_out}
+	
+		awk \'/^>/ {{printf("\\n%s\\n",$0);next; }} {{ printf("%s",$0);}}  END {{printf("\\n");}}\' {output.temp_out} | tail -n +2 > {output.temp_oneliner}		
+	
+		awk \'/>/  {{ id = $0 }} !/>/ {{ seq[id] = seq[id] $0 }} END  {{ for (id in seq) print id "\\n" seq[id] }}\' {output.temp_oneliner} > {output.multi_fasta}
+		
 		rm {input.fasta_list}
 		"""
 
