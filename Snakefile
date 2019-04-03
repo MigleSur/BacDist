@@ -355,7 +355,6 @@ if len(IDS)>0:
 
 consensus_fasta_list = ''.join((output,'/raw_vcf_calls/',first_sample_ID,'/reference/ref.fa'))
 
-eprint(consensus_fasta_list)
 
 # Create another RAxML tree with the reference genome
 rule generate_raxml_tree_with_reference:
