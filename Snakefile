@@ -76,13 +76,16 @@ rule run_snippy:
 		"""
                 module unload anaconda3/4.0.0
 		module load anaconda2/4.0.0
-                module load samtools/1.8
-		module load perl/5.24.0
+                module load tbl2asn/20190117
+		module load parallel/20190122
 		module load bwa/0.7.15
-		module load parallel/20170822
+                module load samtools/1.9
+		module load java/1.8.0
+		module load jre/1.8.0		
+		module load perl/5.24.0
                 module load freebayes/1.1.0-50-g61527c5
                 module load vcflib/1.0.0-rc2
-                module load vcftools/0.1.16
+		module load vcftools/0.1.16
                 module load snpeff/4.3r
                 module load prokka/1.12
                 module load minimap2/2.6
@@ -92,8 +95,6 @@ rule run_snippy:
                 module load bcftools/1.9
                 module load snippy/4.1.0
 		module load vt/0.5772
-		module load java/1.8.0
-		module load jre/1.8.0		
 	
 		(snippy --outdir {params.outdir}/raw_vcf_calls/{params.prefix} --ref {params.ref} --R1 {input.R1} --R2 {input.R2} --prefix {params.prefix} --cpus {params.cpus} --mapqual {params.mapqual} --mincov {params.mincov} --minfrac {params.minfrac} --minqual {params.minqual}  --force) 2> {log}
 		"""
