@@ -16,9 +16,10 @@ def eprint(*args, **kwargs):
 
 
 
-all_fastqs = glob.glob(input_dir+"/*R1_001.fastq.gz")
-temp_fastqs = [fastq.replace('_R1_001.fastq.gz','') for fastq in all_fastqs]
+all_fastqs = glob.glob(input_dir+"/*R1*")
+temp_fastqs = [fastq.rsplit('_R1',1)[0] for fastq in all_fastqs]
 IDS = [fastq.replace(input_dir+'/', '') for fastq in temp_fastqs]
+
 
 sample_no=len(IDS)
 sample_no2=len(IDS)*2
@@ -37,11 +38,23 @@ rule all:
 		"Pipeline complete"
 
 
+def check_fastq_end():
+	fastqs = glob.glob(input_dir+"/*R1*")
+	fastqs += glob.glob(input_dir+"/*R2*")
+	end = [fastq.rsplit('_R', 1)[1][1:] for fastq in fastqs]
+	if len(set(end)) == 1:
+		return(list(set(end))[0])
+	else:
+		raise Exception("ERROR file endings are different. Make sure that all the files have the same file endings.")
+file_end=check_fastq_end()
+
+
+
 # running snippy4 on all input samples
 rule run_snippy:
 	input:
-		R1=expand("{input_dir}/{{sample}}_R1_001.fastq.gz", input_dir=config["sample_dir"]),
-		R2=expand("{input_dir}/{{sample}}_R2_001.fastq.gz", input_dir=config["sample_dir"])
+		R1=expand("{input_dir}/{{sample}}_R1{end}", input_dir=config["sample_dir"], end=file_end),
+		R2=expand("{input_dir}/{{sample}}_R2{end}", input_dir=config["sample_dir"], end=file_end)
 	output:
 		vcf=expand("{outdir}/raw_vcf_calls/{{sample}}/{{sample}}.vcf.gz", outdir=config["output_dir"]),
 		bam=expand("{outdir}/raw_vcf_calls/{{sample}}/{{sample}}.bam", outdir=config["output_dir"]),
@@ -79,6 +92,8 @@ rule run_snippy:
                 module load bcftools/1.9
                 module load snippy/4.1.0
 		module load vt/0.5772
+		module load java/1.8.0
+		module load jre/1.8.0		
 	
 		(snippy --outdir {params.outdir}/raw_vcf_calls/{params.prefix} --ref {params.ref} --R1 {input.R1} --R2 {input.R2} --prefix {params.prefix} --cpus {params.cpus} --mapqual {params.mapqual} --mincov {params.mincov} --minfrac {params.minfrac} --minqual {params.minqual}  --force) 2> {log}
 		"""
@@ -367,7 +382,9 @@ rule generate_raxml_tree_with_reference:
 		raxml_log=temp(expand("{outdir}/output_files/RAxML_log.{name}", outdir=config["output_dir"], name=name_with_ref)),
                 raxml_result=temp(expand("{outdir}/output_files/RAxML_result.{name}", outdir=config["output_dir"], name=name_with_ref)),
                 raxml_info=temp(expand("{outdir}/output_files/RAxML_info.{name}", outdir=config["output_dir"], name=name_with_ref)),
-		raxml_parsimony=temp(expand("{outdir}/output_files/RAxML_parsimonyTree.{name}", outdir=config["output_dir"], name=name_with_ref))
+		raxml_parsimony=temp(expand("{outdir}/output_files/RAxML_parsimonyTree.{name}", outdir=config["output_dir"], name=name_with_ref)),
+		reference=temp(expand("{outdir}/temp/{name}.fa", outdir=config["output_dir"], name=name_with_ref)),
+		reference_oneliner=temp(expand("{outdir}/temp/{name}_oneliner.fa", outdir=config["output_dir"], name=name_with_ref))
 	log:
 		expand("{outdir}/logs/raxml_{name}.log",outdir=config["output_dir"], name=name_with_ref)
 	params:
@@ -381,8 +398,15 @@ rule generate_raxml_tree_with_reference:
 		"""
 		module load raxml/8.2.11
 
-		cat {input.multi_fasta} {input.ref} > {output.multi_fasta_with_ref}
-                ref_name=`head -1 {input.ref} | sed 's/>//'` 
+		name=`cat {input.ref} | grep ">" | head -1`
+		seq=`cat {input.ref} | grep -v ">"`
+		echo "$name" $'\\n' "$seq" > {output.reference}
+	
+		awk \'/^>/ {{printf("\\n%s\\n",$0);next; }} {{ printf("%s",$0);}}  END {{printf("\\n");}}\' {output.reference} | tail -n +2 > {output.reference_oneliner}
+
+		cat {output.reference_oneliner} {input.multi_fasta} > {output.multi_fasta_with_ref}
+
+		ref_name=`head -1 {input.ref} | sed 's/>//'`
 		(raxmlHPC -o $ref_name -n {params.name} -s {output.multi_fasta_with_ref} -m {params.method} -p {params.p} -w {params.dir}) 2> {log}
 
 		"""
