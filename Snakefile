@@ -268,6 +268,7 @@ rule split_final_vcf:
 		"Splitting final filtered VCF file to separate files for each sample"
 	shell:
 		"""
+		module load perl/5.24.0
 		module load bcftools/1.9
 		module load vcftools/0.1.16
 		
