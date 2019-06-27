@@ -1,10 +1,10 @@
 import sys
 import argparse
-import glob
+import glob, os
 
 
-configfile: "config.yaml"
-
+if os.path.exists('config.yaml'):
+        configfile: 'config.yaml'
 
 input_dir=config['sample_dir']
 reference=config['ref']
