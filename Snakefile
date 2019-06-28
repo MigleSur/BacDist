@@ -20,6 +20,13 @@ all_fastqs = glob.glob(input_dir+"/*R1*")
 temp_fastqs = [fastq.rsplit('_R1',1)[0] for fastq in all_fastqs]
 IDS = [fastq.replace(input_dir+'/', '') for fastq in temp_fastqs]
 
+# create dictionary of input read file pairs:
+READS={}
+for f in temp_fastqs:
+        sample=f.split('/')[-1]
+        R1, R2=glob.glob(f+"*.fastq.gz")
+        READS[sample]={'R1':R1, 'R2':R2}
+
 
 sample_no=len(IDS)
 sample_no2=len(IDS)*2
@@ -38,23 +45,25 @@ rule all:
 		"Pipeline complete"
 
 
+# check if files are fastq.gz:
 def check_fastq_end():
-	fastqs = glob.glob(input_dir+"/*R1*")
-	fastqs += glob.glob(input_dir+"/*R2*")
-	end = [fastq.rsplit('_R', 1)[1][1:] for fastq in fastqs]
-	if len(set(end)) == 1:
-		return(list(set(end))[0])
-	else:
-		raise Exception("ERROR file endings are different. Make sure that all the files have the same file endings.")
-file_end=check_fastq_end()
+        fastqs = glob.glob(input_dir+"/*R1*"); fastqs += glob.glob(input_dir+"/*R2*")
+        for fastq in fastqs:
+                if not fastq.endswith('fastq.gz'):
+                        raise Exception("ERROR Input files must be fastq.gz !")
+        return
 
+
+check_fastq_end()
+
+def get_reads(wildcards):
+        return {'R1': READS[wildcards.sample]["R1"], 'R2': READS[wildcards.sample]["R2"]}
 
 
 # running snippy4 on all input samples
 rule run_snippy:
 	input:
-		R1=expand("{input_dir}/{{sample}}_R1{end}", input_dir=config["sample_dir"], end=file_end),
-		R2=expand("{input_dir}/{{sample}}_R2{end}", input_dir=config["sample_dir"], end=file_end)
+		unpack(get_reads)
 	output:
 		vcf=expand("{outdir}/raw_vcf_calls/{{sample}}/{{sample}}.vcf.gz", outdir=config["output_dir"]),
 		bam=expand("{outdir}/raw_vcf_calls/{{sample}}/{{sample}}.bam", outdir=config["output_dir"]),
