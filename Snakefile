@@ -24,7 +24,8 @@ IDS = [fastq.replace(input_dir+'/', '') for fastq in temp_fastqs]
 READS={}
 for f in temp_fastqs:
         sample=f.split('/')[-1]
-        R1, R2=glob.glob(f+"*.fastq.gz")
+	res=[glob.glob(f+'*%s'%end) for end in ['.fq.gz', '.fastq.gz']] ; res.remove([])
+        R1, R2=res[0]
         READS[sample]={'R1':R1, 'R2':R2}
 
 
@@ -49,8 +50,8 @@ rule all:
 def check_fastq_end():
         fastqs = glob.glob(input_dir+"/*R1*"); fastqs += glob.glob(input_dir+"/*R2*")
         for fastq in fastqs:
-                if not fastq.endswith('fastq.gz'):
-                        raise Exception("ERROR Input files must be fastq.gz !")
+                if not fastq.endswith('fastq.gz') and not fastq.endswith('fq.gz'):
+                        raise Exception("ERROR Input files must be fastq.gz or fq.gz !")
         return
 
 
