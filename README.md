@@ -13,9 +13,11 @@ The pipeline takes a number of WGS bacterial genome fastq files and outputs:
 	
 3. Phylogenetic tree (if more than 3 samples were used for the analysis) based on the filtered VCF file and created using RAxML
 
+4. Summary statistics including the number of variants identified before and after region of recombination filtering,the number of positions included in the analysis and the number of positions in the reference genome.
+
 Optional:
 
-4. Recombination event prediction and files 1. and 2. with excluded variants from predicted recombination sites. 
+5. Recombination event prediction and files 1. and 2. with excluded variants from predicted recombination sites. 
 
 ## Required software
 
