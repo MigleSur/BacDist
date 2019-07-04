@@ -1,5 +1,5 @@
 # BacDist
-Snakemake pipeline for bacterial SNP distance and phylogeny analysis
+Snakemake pipeline for bacterial SNP distance, recombination and phylogenetic analysis
 
 ## General information
 
@@ -13,13 +13,18 @@ The pipeline takes a number of WGS bacterial genome fastq files and outputs:
 	
 3. Phylogenetic tree (if more than 3 samples were used for the analysis) based on the filtered VCF file and created using RAxML
 
+Optional:
+
+4. Recombination event prediction and files 1. and 2. with excluded variants from predicted recombination sites. 
+
 ## Required software
 
 Before running the pipeline, make sure that the following programs are installed and added to the path:
 
-GNU parallel >=2013xxxx<br/>
-Perl>=5.12<br/>
-Perl Modules: Time::Piece (core with modern Perl), Bioperl >= 1.6 <br/>
+[GNU parallel >=2013xxxx](https://www.gnu.org/software/parallel/) <br/>
+[Perl>=5.12](https://www.perl.org/) <br/>
+Perl Modules: Time::Piece (core with modern Perl) <br/>
+[Bioperl >= 1.6](https://bioperl.org/) <br/>
 [bwa mem>=0.7.12](http://bio-bwa.sourceforge.net/)<br/>
 [readseq>=2.0](http://iubio.bio.indiana.edu/soft/molbio/readseq/java/)<br/>
 [samclip>=0.2](https://github.com/tseemann/samclip)<br/>
@@ -37,12 +42,15 @@ Perl Modules: Time::Piece (core with modern Perl), Bioperl >= 1.6 <br/>
 [samtools>=1.9](http://www.htslib.org/doc/samtools.html)<br/>
 [raxml>=8.2.11](https://cme.h-its.org/exelixis/software.html)<br/>
 
+Optional:
+[ClonalFrameML>=20170927](https://github.com/xavierdidelot/ClonalFrameML)<br/>
+
 
 ### Disclaimer
 
-[Snippy4](https://github.com/tseemann/snippy) doesn't work with python3. Python3 should be disabled at that step and Python2 should be available.
+[Snippy4](https://github.com/tseemann/snippy) doesn't work with python3. Python3 should be disabled at that step and Python2 should be available. 
 
-Reference genome should not contain plasmid sequences for the results to be more accurate. More than one chromosome in the reference genome is acceptable and can be used if needed.
+Reference genome should not contain plasmid sequences for the results to be more accurate. More than one sequence in the Genbank format reference genome is not accepted.
 
 ## Setting up the config.yaml file 
 
@@ -51,6 +59,7 @@ In order for the pipeline to run, a configuration file is needed. A configuratio
 * output_dir - Output directory where all the output files will be created.
 * ref - Reference genome in gbk format. 
 * name - Chosen name for the analysis. The name is used as a prefix in output and intermediate files.
+* ClonalFrameML - True if ClonalFrameML recombination analysis should be run, False if the analysis should be skipped.
 
 Here is the example configuration file:
 ```
@@ -58,15 +67,14 @@ sample_dir: "/home/project_name/fastq"
 output_dir: "/home/project_name/AX01"
 ref: "/home/reference_genomes/GCF_001457475.1_NCTC10807_genomic.gbk"
 name: "AX01"
+ClonalFrame: True
 ```
 
-## Input file requirement
+## Input file requirements
 
-Input file format should follow the following:
-```
-[prefix]_R1_001.fastq.gz 
-[prefix]_R2_001.fastq.gz
-```
+Input files should be in fastq format.
+
+If there are less than 4 samples, RAxML phylogenetic analysis and ClonalFrame recombination analysis will be skipped. With 3 samples RAxML analysis with the reference genome will be performed. 
 
 ## Running the pipeline 
 
