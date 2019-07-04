@@ -106,4 +106,8 @@ After completing the steps a pipeline can be rerun with different samples.
 
 ## Author
 
-Migle Gabrielaite | migle.gabrielaite@gmail.com
+Migle Gabrielaite | migle.gabrielaite@regionh.dk
+
+### Contributors
+
+Maria-Anna Misiakou | maria.anna.misiakou@regionh.dk
