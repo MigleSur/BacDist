@@ -13,7 +13,7 @@ The pipeline takes a number of WGS bacterial genome fastq files and outputs:
 	
 3. Phylogenetic tree (if more than 3 samples were used for the analysis) based on the filtered VCF file and created using RAxML
 
-### Optional software to run recombination analysis:
+Optional:
 
 4. Recombination event prediction and files 1. and 2. with excluded variants from predicted recombination sites. 
 
@@ -42,7 +42,7 @@ Perl Modules: Time::Piece (core with modern Perl) <br/>
 [samtools>=1.9](http://www.htslib.org/doc/samtools.html)<br/>
 [raxml>=8.2.11](https://cme.h-its.org/exelixis/software.html)<br/>
 
-Optional:
+### Optional software to run recombination analysis:
 
 [ClonalFrameML>=20170927](https://github.com/xavierdidelot/ClonalFrameML)<br/>
 
