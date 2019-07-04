@@ -62,7 +62,7 @@ In order for the pipeline to run, a configuration file is needed. A configuratio
 * output_dir - Output directory where all the output files will be created.
 * ref - Reference genome in gbk format. 
 * name - Chosen name for the analysis. The name is used as a prefix in output and intermediate files.
-* ClonalFrameML - True if ClonalFrameML recombination analysis should be run, False if the analysis should be skipped.
+* ClonalFrameML - `True` if ClonalFrameML recombination analysis should be run, `False` if the analysis should be skipped.
 
 Here is the example configuration file:
 ```
