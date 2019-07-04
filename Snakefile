@@ -1,7 +1,7 @@
 import sys
 import argparse
 import glob, os
-
+from Bio import SeqIO
 
 if os.path.exists('config.yaml'):
         configfile: 'config.yaml'
@@ -29,6 +29,30 @@ for f in temp_fastqs:
         READS[sample]={'R1':R1, 'R2':R2}
 
 
+# check if files are fastq.gz:
+def check_fastq_end():
+	fastqs = glob.glob(input_dir+"/*R1*"); fastqs += glob.glob(input_dir+"/*R2*")
+	for fastq in fastqs:
+		if not fastq.endswith('fastq.gz') and not fastq.endswith('fq.gz'):
+			raise Exception("ERROR Input files must be fastq.gz or fq.gz !")
+	return
+
+
+check_fastq_end()
+
+def get_reads(wildcards):
+	return {'R1': READS[wildcards.sample]["R1"], 'R2': READS[wildcards.sample]["R2"]}
+
+
+def check_for_plasmids():
+	'''
+	Checking if the GBK file is valid and contains only one sequence.
+	'''
+	ref_file = SeqIO.read(reference, "genbank")
+
+check_for_plasmids()
+
+
 sample_no=len(IDS)
 sample_no2=len(IDS)*2
 
@@ -40,25 +64,14 @@ rule all:
 	input:
 		final_vcf=expand("{outdir}/output_files/{name}_final.vcf", name=config["name"], outdir=config["output_dir"]),
 		snp_dist=expand("{outdir}/output_files/{name}_snp_dist.tsv", outdir=config["output_dir"], name=config["name"]),
-		raxml=expand("{outdir}/output_files/RAxML_bestTree.{name}", outdir=config["output_dir"], name=config["name"]),
-		raxml_with_ref=expand("{outdir}/output_files/RAxML_bestTree.{name}", outdir=config["output_dir"], name=name_with_ref)
+		raxml=expand("{outdir}/output_files/RAxML_bestTree.{name}", outdir=config["output_dir"], name=config["name"]) if sample_no>=4 else [],
+		raxml_with_ref=expand("{outdir}/output_files/RAxML_bestTree.{name}", outdir=config["output_dir"], name=name_with_ref) if sample_no>=3 else [],
+		clonalframe_output=expand("{outdir}/output_files/ClonalFrameML_{name}.importation_status.txt", outdir=config["output_dir"], name=config["name"]) if config["ClonalFrameML"]==True and sample_no>=4 else [],
+		clonalframe_vcf=expand("{outdir}/output_files/{name}_final_no_recombination.vcf", name=config["name"], outdir=config["output_dir"]) if config["ClonalFrameML"]==True and sample_no>=4 else [],
+		snp_dist_no_recombination=expand("{outdir}/output_files/{name}_no_recombination_snp_dist.tsv", outdir=config["output_dir"], name=config["name"]) if config["ClonalFrameML"]==True and sample_no>=4 else [],
+		summary_stats=expand("{outdir}/output_files/summary_statistics.txt", outdir=config["output_dir"], name=config["name"])
 	message:
 		"Pipeline complete"
-
-
-# check if files are fastq.gz:
-def check_fastq_end():
-        fastqs = glob.glob(input_dir+"/*R1*"); fastqs += glob.glob(input_dir+"/*R2*")
-        for fastq in fastqs:
-                if not fastq.endswith('fastq.gz') and not fastq.endswith('fq.gz'):
-                        raise Exception("ERROR Input files must be fastq.gz or fq.gz !")
-        return
-
-
-check_fastq_end()
-
-def get_reads(wildcards):
-        return {'R1': READS[wildcards.sample]["R1"], 'R2': READS[wildcards.sample]["R2"]}
 
 
 # running snippy4 on all input samples
@@ -68,7 +81,8 @@ rule run_snippy:
 	output:
 		vcf=expand("{outdir}/raw_vcf_calls/{{sample}}/{{sample}}.vcf.gz", outdir=config["output_dir"]),
 		bam=expand("{outdir}/raw_vcf_calls/{{sample}}/{{sample}}.bam", outdir=config["output_dir"]),
-		ref=expand("{outdir}/raw_vcf_calls/{{sample}}/reference/ref.fa", outdir=config["output_dir"])
+		ref=expand("{outdir}/raw_vcf_calls/{{sample}}/reference/ref.fa", outdir=config["output_dir"]),
+		aligned_fa=expand("{outdir}/raw_vcf_calls/{{sample}}/{{sample}}.aligned.fa", outdir=config["output_dir"])
 	params:	
 		outdir=expand("{outdir}",outdir=config["output_dir"]),
 		ref=config['ref'],
@@ -103,7 +117,7 @@ rule run_snippy:
                 module load snp-sites/2.4.0
                 module load emboss/6.6.0
                 module load bcftools/1.9
-                module load snippy/4.1.0
+                module load snippy/4.4.0
 		module load vt/0.5772
 	
 		(snippy --outdir {params.outdir}/raw_vcf_calls/{params.prefix} --ref {params.ref} --R1 {input.R1} --R2 {input.R2} --prefix {params.prefix} --cpus {params.cpus} --mapqual {params.mapqual} --mincov {params.mincov} --minfrac {params.minfrac} --minqual {params.minqual}  --force) 2> {log}
@@ -320,7 +334,6 @@ rule create_multi_fasta:
 		fasta_list=consensus_fasta_list
 	output:
 		multi_fasta=expand("{outdir}/output_files/{name}_final_filtered.fa", outdir=config["output_dir"], name=config["name"]),
-		temp_oneliner=temp(expand("{outdir}/output_files/{name}_final_filtered_temp_oneliner.fa", outdir=config["output_dir"], name=config["name"])),
 		temp_out=temp(expand("{outdir}/output_files/{name}_final_filtered_temp.fa", outdir=config["output_dir"], name=config["name"]))
 	message:
 		"Creating a multi-FASTA file for all samples"
@@ -328,9 +341,8 @@ rule create_multi_fasta:
 		"""
 		cat {input.fasta_list} > {output.temp_out}
 	
-		awk \'/^>/ {{printf("\\n%s\\n",$0);next; }} {{ printf("%s",$0);}}  END {{printf("\\n");}}\' {output.temp_out} | tail -n +2 > {output.temp_oneliner}		
-	
-		awk \'/>/  {{ id = $0 }} !/>/ {{ seq[id] = seq[id] $0 }} END  {{ for (id in seq) print id "\\n" seq[id] }}\' {output.temp_oneliner} > {output.multi_fasta}
+		awk \'!/^>/ {{ printf "%s", $0; n = "\\n" }} /^>/ {{ print n $0; n = "" }} END {{ printf "%s", n }}\' {output.temp_out} > {output.multi_fasta}
+
 		
 		rm {input.fasta_list}
 		"""
@@ -350,6 +362,8 @@ rule calculate_snp_distances:
 		"""
 		{params.snp_dists} -q {input.multi_fasta} > {output.snp_dist}
 		"""
+
+
 
 # Create RAxML tree from a multi-fasta file
 rule generate_raxml_tree:
@@ -408,19 +422,198 @@ rule generate_raxml_tree_with_reference:
 		"Creating a phylogenetic tree based on SNPs with the reference genome"
 	shell:
 		"""
-		module load raxml/8.2.11
+		module load raxml/8.2.9
 
 		name=`cat {input.ref} | grep ">" | head -1`
 		seq=`cat {input.ref} | grep -v ">"`
 		echo "$name" $'\\n' "$seq" > {output.reference}
-	
-		awk \'/^>/ {{printf("\\n%s\\n",$0);next; }} {{ printf("%s",$0);}}  END {{printf("\\n");}}\' {output.reference} | tail -n +2 > {output.reference_oneliner}
+
+		awk \'!/^>/ {{ printf "%s", $0; n = "\\n" }} /^>/ {{ print n $0; n = "" }} END {{ printf "%s", n }}\' {output.reference} | sed 's/^ //' | sed 's/\s.*//' > {output.reference_oneliner}
 
 		cat {output.reference_oneliner} {input.multi_fasta} > {output.multi_fasta_with_ref}
 
-		ref_name=`head -1 {input.ref} | sed 's/>//'`
+		ref_name=`head -1 {input.ref} | sed 's/>//' | sed 's/\s.*//'`
 		(raxmlHPC -o $ref_name -n {params.name} -s {output.multi_fasta_with_ref} -m {params.method} -p {params.p} -w {params.dir}) 2> {log}
 
 		"""
 
-# make tree produced only if there are enough samples
+
+### START OF CLONALFRAME ANALYSIS
+rule run_clonal_frame:
+	input:
+		nwk=expand("{outdir}/output_files/RAxML_bestTree.{name}", outdir=config["output_dir"], name=config["name"]),
+		fasta=expand("{outdir}/output_files/{name}_final_filtered.fa", outdir=config["output_dir"], name=config["name"])
+	output:
+		ml_seq=expand("{outdir}/output_files/ClonalFrameML_{name}.ML_sequence.fasta", outdir=config["output_dir"], name=config["name"]),
+		cross_reference=temp(expand("{outdir}/output_files/ClonalFrameML_{name}.position_cross_reference.txt",outdir=config["output_dir"], name=config["name"])),
+		importation_status=expand("{outdir}/output_files/ClonalFrameML_{name}.importation_status.txt", outdir=config["output_dir"], name=config["name"]),
+		em=temp(expand("{outdir}/output_files/ClonalFrameML_{name}.em.txt", outdir=config["output_dir"], name=config["name"])),
+		labelled_tree=expand("{outdir}/output_files/ClonalFrameML_{name}.labelled_tree.newick", outdir=config["output_dir"], name=config["name"])
+	log:
+		expand("{outdir}/logs/ClonalFrameML_{name}.log", outdir=config["output_dir"], name=config["name"])
+	params:
+		out_name=expand("{outdir}/output_files/ClonalFrameML_{name}", outdir=config["output_dir"], name=config["name"])
+	message:
+		"Inference of recombination with ClonalFrameML"
+	shell:
+		"""
+		module load clonalframeml/20170927
+
+		ClonalFrameML {input.nwk} {input.fasta} {params.out_name}
+		"""
+	
+# Filter the final VCF file and exclude the positions which were suspected to undergo recombination events
+rule filter_vcf_clonalframe:
+	input:
+		vcf=expand("{outdir}/output_files/{name}_final.vcf", name=config["name"], outdir=config["output_dir"]),
+		importation_status=expand("{outdir}/output_files/ClonalFrameML_{name}.importation_status.txt", outdir=config["output_dir"], name=config["name"])
+	output:
+		clonalframe_vcf=expand("{outdir}/output_files/{name}_final_no_recombination.vcf", name=config["name"], outdir=config["output_dir"]),
+		bed=temp(expand("{outdir}/temp/clonalframe_temp.bed", outdir=config["output_dir"]))
+	message:
+		"Filtering VCF file with the sites of recombination (exluding variants from the recombination sites)"
+	shell:
+		"""
+		module load bedtools/2.28.0
+
+		chr=`cat {input.vcf} | grep -v "#" | cut -f 1 | uniq`
+
+		cat {input.importation_status} | awk -v chrom="$chr" '{{print  chrom, $2,$3}}' | tail -n +2 | tr " " "\t" > {output.bed}
+
+		bedtools intersect -a {input.vcf} -b {output.bed} -header -v > {output.clonalframe_vcf}
+
+		"""
+
+# Split ClonalFrameML filtered multi-vcf file to vcf file for each sample
+rule split_final_vcf_clonalframe:
+        input:
+                vcf=expand("{outdir}/output_files/{name}_final_no_recombination.vcf", name=config["name"], outdir=config["output_dir"])
+        output:
+                split_vcf=temp(expand("{outdir}/temp/{{sample}}_final_no_recombination_split.vcf", outdir=config["output_dir"])),
+        params:
+                sample="{sample}"
+        message:
+                "Splitting final filtered VCF file (without variants in recombination sites) to separate files for each sample"
+        shell:
+                """
+                module load perl/5.24.0
+                module load bcftools/1.9
+                module load vcftools/0.1.16
+
+                vcf-subset --exclude-ref -t SNPs -c {params.sample} {input.vcf} > {output.split_vcf}
+
+                """
+
+# Create fasta file from ClonalFrameML filtered vcf for each sample
+rule create_fasta_for_vcf_clonalframe:
+        input:
+                vcf=expand("{outdir}/temp/{{sample}}_final_no_recombination_split.vcf", outdir=config["output_dir"]),
+                ref=expand("{outdir}/raw_vcf_calls/{{sample}}/reference/ref.fa", outdir=config["output_dir"])
+        output:
+                fasta=expand("{outdir}/temp/{{sample}}_final_no_recombination_split.fasta", outdir=config["output_dir"]),
+                vcf_gz=temp(expand("{outdir}/temp/{{sample}}_final_no_recombination_split.vcf.gz", outdir=config["output_dir"])),
+                tbi=temp(expand("{outdir}/temp/{{sample}}_final_no_recombination_split.vcf.gz.tbi", outdir=config["output_dir"]))
+        log:
+                expand("{outdir}/logs/fasta_from_vcf_no_recombination_{{sample}}.log",outdir=config["output_dir"])
+        params:
+                sample="{sample}"
+        message:
+                "Creating a FASTA file from a VCF (without variants in recombination sites) file"
+        shell:
+                """
+                module load bcftools/1.9
+
+                bgzip {input.vcf}
+                tabix -p vcf {output.vcf_gz}
+
+                (bcftools consensus -f {input.ref} -H A {output.vcf_gz} -o {output.fasta}) 2> {log}
+                sed -i 's/^>.*/>{params.sample}/' {output.fasta}
+                """
+
+consensus_no_recombination_fasta_list = [''.join((output,'/temp/',file,'_final_no_recombination_split.fasta')) for file in IDS]
+
+# Create a multi-FASTA file for all samples (without recombination sites)
+rule create_multi_fasta_clonalframe:
+        input:
+                fasta_list=consensus_no_recombination_fasta_list
+        output:
+                multi_fasta=expand("{outdir}/output_files/{name}_final_no_recombination_filtered.fa", outdir=config["output_dir"], name=config["name"]),
+                temp_out=temp(expand("{outdir}/output_files/{name}_final_no_recombination_filtered_temp.fa", outdir=config["output_dir"], name=config["name"]))
+        message:
+                "Creating a multi-FASTA file for all samples for variants excluding variants in the recombination sites"
+        shell:
+                """
+                cat {input.fasta_list} > {output.temp_out}
+
+                awk \'!/^>/ {{ printf "%s", $0; n = "\\n" }} /^>/ {{ print n $0; n = "" }} END {{ printf "%s", n }}\' {output.temp_out} > {output.multi_fasta}
+
+                rm {input.fasta_list}
+                """
+
+
+# Calculate SNP distance without sites which were involved in recombination events
+rule calculate_snp_distances_clonalframe:
+        input:
+                multi_fasta=expand("{outdir}/output_files/{name}_final_no_recombination_filtered.fa", outdir=config["output_dir"], name=config["name"])
+        output:
+                snp_dist=expand("{outdir}/output_files/{name}_no_recombination_snp_dist.tsv", outdir=config["output_dir"], name=config["name"])
+        params:
+                snp_dists="/home/projects/cu_10047/people/misur/snp-dists/snp-dists"
+        message:
+                "Creating SNP distance matrix which excludes the variants in the recombination sites"
+        shell:
+                """
+                {params.snp_dists} -q {input.multi_fasta} > {output.snp_dist}
+		"""
+
+### END OF CLONALFRAME ANALYSIS
+
+aligned_fa_list = [''.join((output,'/raw_vcf_calls/',file,'/',file,'.aligned.fa')) for file in IDS]
+
+rule summary_stats:
+	input:
+		vcf=expand("{outdir}/output_files/{name}_final.vcf", name=config["name"], outdir=config["output_dir"]),
+		multi_fasta=expand("{outdir}/output_files/{name}_final_filtered_incl_reference.fa", outdir=config["output_dir"], name=config["name"]),
+		no_recomb_vcf=expand("{outdir}/output_files/{name}_final_no_recombination.vcf", name=config["name"], outdir=config["output_dir"]) if config["ClonalFrameML"]==True and sample_no>=4 else [],
+		aligned_fasta=aligned_fa_list
+	output:
+		summary_stats=expand("{outdir}/output_files/summary_statistics.txt", outdir=config["output_dir"], name=config["name"]),
+		temp_fasta=temp(expand("{outdir}/temp/{name}_aligned_sequences.fa", outdir=config["output_dir"], name=config["name"]))
+	params:
+		analysis_name=expand("{name}",name=config["name"]),
+		clonalframe=expand("{cf}", cf=config["ClonalFrameML"]),
+		number=sample_no
+	message:
+		"Calculating summary statistics" 
+	shell:
+		"""
+		echo "Analysis name:\t{params.analysis_name}" > {output.summary_stats}
+		
+		variants=`cat {input.vcf} | grep -v "#" | wc -l` 
+		echo "Number of variants in total:\t$variants">> {output.summary_stats}
+		
+		snps=`cat {input.vcf} | grep -v "#" | awk 'length($4)==1 && length($5)==1' | wc -l`
+		echo "Number of SNPs in total:\t$snps" >> {output.summary_stats}
+				
+		reference_sites=`head -2 {input.multi_fasta} | tail -1 | wc -m`
+		echo "Number of sites in the reference genome:\t$reference_sites" >> {output.summary_stats}
+
+
+		cat {input.aligned_fasta} | awk \'!/^>/ {{ printf "%s", $0; n = "\\n" }} /^>/ {{ print n $0; n = "" }} END {{ printf "%s", n }}\' | sed 's/^ //' | grep -v ">" > {output.temp_fasta}
+		considered_sites=`sed -e 's/./ &/g' < {output.temp_fasta} | awk ' {{for(i=1;i<=cc;i++){{if($i==""){{$i=" "}};r[i]=r[i]sep$i;}};sep=" "}};END{{for(i=1;i<=cc;i++)print(r[i])}}' cc="$reference_sites" | grep -v "-" | grep -v "N" | wc -l`
+		echo "Number of sites considered in the analysis:\t$considered_sites" >> {output.summary_stats}
+
+
+	
+		if [[ {params.number} > 3 && {params.clonalframe} == "True" ]]	
+		then
+			norecomb_variants=`cat {input.no_recomb_vcf} | grep -v "#" | wc -l`
+			norecomb_snps=`cat {input.no_recomb_vcf} | grep -v "#" | awk 'length($4)==1 && length($5)==1' | wc -l`
+			echo "Number of variants excluding sites of recombination:\t$norecomb_variants" >> {output.summary_stats}
+			echo "Number of SNPs excluding sites of recombination:\t$norecomb_snps" >> {output.summary_stats}
+		else
+			echo "Number of variants excluding sites of recombination:\tNo recombination analysis performed" >> {output.summary_stats}
+			echo "Number of SNPs excluding sites of recombination:\tNo recombination analysis performed" >> {output.summary_stats}
+		fi
+
+		"""
