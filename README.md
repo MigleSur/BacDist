@@ -81,7 +81,7 @@ If there are less than 4 samples, RAxML phylogenetic analysis and ClonalFrame re
 
 ## Running the pipeline 
 
-In order to run the pipeline anaconda3 (version 4.0.0) has to be available. Snakemake is started from its directory directory:
+In order to run the pipeline anaconda3 (version 4.0.0) has to be available. Snakemake is started from its directory:
     
 ```
 -j option allows to choose the number of threads (1-28) used for the analysis (default:1)
