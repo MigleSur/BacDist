@@ -70,7 +70,7 @@ sample_dir: "/home/project_name/fastq"
 output_dir: "/home/project_name/AX01"
 ref: "/home/reference_genomes/GCF_001457475.1_NCTC10807_genomic.gbk"
 name: "AX01"
-ClonalFrame: True
+ClonalFrameML: True
 ```
 
 ## Input file requirements
