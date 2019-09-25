@@ -70,7 +70,7 @@ sample_dir: "/home/project_name/fastq"
 output_dir: "/home/project_name/AX01"
 ref: "/home/reference_genomes/GCF_001457475.1_NCTC10807_genomic.gbk"
 name: "AX01"
-ClonalFrame: True
+ClonalFrameML: True
 ```
 
 ## Input file requirements
@@ -81,7 +81,7 @@ If there are less than 4 samples, RAxML phylogenetic analysis and ClonalFrame re
 
 ## Running the pipeline 
 
-In order to run the pipeline anaconda3 (version 4.0.0) has to be available. Snakemake is started from its directory directory:
+In order to run the pipeline anaconda3 (version 4.0.0) has to be available. Snakemake is started from its directory:
     
 ```
 -j option allows to choose the number of threads (1-28) used for the analysis (default:1)
