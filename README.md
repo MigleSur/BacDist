@@ -107,6 +107,14 @@ Second, the following directories have to be deleted:
 
 After completing the steps a pipeline can be rerun with different samples.
 
+### Citation
+
+Migle Gabrielaite
+
+BacDist: Snakemake pipeline for bacterial SNP distance and phylogeny analysis
+
+doi: [10.5281/zenodo.3667680](https://zenodo.org/record/3667680#.Xka7-Gi6O70)
+
 ## Author
 
 Migle Gabrielaite | migle.gabrielaite@regionh.dk
@@ -114,3 +122,5 @@ Migle Gabrielaite | migle.gabrielaite@regionh.dk
 ### Contributors
 
 Maria-Anna Misiakou | maria.anna.misiakou@regionh.dk
+
+
