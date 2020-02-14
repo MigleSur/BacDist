@@ -109,11 +109,9 @@ After completing the steps a pipeline can be rerun with different samples.
 
 ### Citation
 
-Migle Gabrielaite
-
-BacDist: Snakemake pipeline for bacterial SNP distance and phylogeny analysis
-
-doi: [10.5281/zenodo.3667680](https://zenodo.org/record/3667680#.Xka7-Gi6O70)
+Migle Gabrielaite <br/>
+BacDist: Snakemake pipeline for bacterial SNP distance and phylogeny analysis <br/>
+doi: [10.5281/zenodo.3667680](https://zenodo.org/record/3667680#.Xka7-Gi6O70) 
 
 ## Author
 
