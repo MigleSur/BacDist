@@ -568,7 +568,7 @@ rule summary_stats:
 
 
 	
-		if [[ {params.number} > 3 && {params.clonalframe} == "True" ]]	
+		if [[ {params.number} > 3 && {params.clonalframe} == True ]]	
 		then
 			norecomb_variants=`cat {input.no_recomb_vcf} | grep -v "#" | wc -l`
 			norecomb_snps=`cat {input.no_recomb_vcf} | grep -v "#" | awk 'length($4)==1 && length($5)==1' | wc -l`
