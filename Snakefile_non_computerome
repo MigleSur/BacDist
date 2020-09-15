@@ -367,44 +367,54 @@ if len(IDS)>0:
 consensus_fasta_list = ''.join((output,'/raw_vcf_calls/',first_sample_ID,'/reference/ref.fa'))
 
 
+# Create a multi-fasta file with reference
+rule generate_multi_fasta_reference:
+	input:
+		multi_fasta=expand("{outdir}/output_files/{name}_final_filtered.fa", outdir=config["output_dir"], name=config["name"]),
+		ref=consensus_fasta_list
+	output:
+		multi_fasta_with_ref=expand("{outdir}/output_files/{name}_final_filtered_incl_reference.fa", outdir=config["output_dir"], name=config["name"]),
+		reference=temp(expand("{outdir}/temp/{name}.fa", outdir=config["output_dir"], name=name_with_ref)),
+		reference_oneliner=temp(expand("{outdir}/temp/{name}_oneliner.fa", outdir=config["output_dir"], name=name_with_ref))
+	params:
+		dir=expand("{outdir}/output_files/", outdir=config["output_dir"])
+	message:
+		"Creating a multi-fasta file with the reference genome"
+	shell:
+                """
+                name=`cat {input.ref} | grep ">" | head -1`
+                seq=`cat {input.ref} | grep -v ">"`
+                echo "$name" $'\\n' "$seq" > {output.reference}
+                awk \'!/^>/ {{ printf "%s", $0; n = "\\n" }} /^>/ {{ print n $0; n = "" }} END {{ printf "%s", n }}\' {output.reference} | sed 's/^ //' | sed 's/\s.*//' > {output.reference_oneliner}
+                cat {output.reference_oneliner} {input.multi_fasta} > {output.multi_fasta_with_ref}
+                """
+
+
 # Create another RAxML tree with the reference genome
 rule generate_raxml_tree_with_reference:
 	input:
 		multi_fasta=expand("{outdir}/output_files/{name}_final_filtered.fa", outdir=config["output_dir"], name=config["name"]),
 		ref=consensus_fasta_list
 	output:
-		multi_fasta_with_ref=expand("{outdir}/output_files/{name}_final_filtered_incl_reference.fa", outdir=config["output_dir"], name=config["name"]),
 		raxml=expand("{outdir}/output_files/RAxML_bestTree.{name}", outdir=config["output_dir"], name=name_with_ref),
 		raxml_log=temp(expand("{outdir}/output_files/RAxML_log.{name}", outdir=config["output_dir"], name=name_with_ref)),
-                raxml_result=temp(expand("{outdir}/output_files/RAxML_result.{name}", outdir=config["output_dir"], name=name_with_ref)),
-                raxml_info=temp(expand("{outdir}/output_files/RAxML_info.{name}", outdir=config["output_dir"], name=name_with_ref)),
+		raxml_result=temp(expand("{outdir}/output_files/RAxML_result.{name}", outdir=config["output_dir"], name=name_with_ref)),
+		raxml_info=temp(expand("{outdir}/output_files/RAxML_info.{name}", outdir=config["output_dir"], name=name_with_ref)),
 		raxml_parsimony=temp(expand("{outdir}/output_files/RAxML_parsimonyTree.{name}", outdir=config["output_dir"], name=name_with_ref)),
-		reference=temp(expand("{outdir}/temp/{name}.fa", outdir=config["output_dir"], name=name_with_ref)),
-		reference_oneliner=temp(expand("{outdir}/temp/{name}_oneliner.fa", outdir=config["output_dir"], name=name_with_ref))
 	log:
 		expand("{outdir}/logs/raxml_{name}.log",outdir=config["output_dir"], name=name_with_ref)
 	params:
 		name=name_with_ref,
-                method="GTRCAT",
-                p="12345",
-                dir=expand("{outdir}/output_files/", outdir=config["output_dir"])
+		method="GTRCAT",
+		p="12345",
+		dir=expand("{outdir}/output_files/", outdir=config["output_dir"])
 	message:
 		"Creating a phylogenetic tree based on SNPs with the reference genome"
 	shell:
-		"""
-
-		name=`cat {input.ref} | grep ">" | head -1`
-		seq=`cat {input.ref} | grep -v ">"`
-		echo "$name" $'\\n' "$seq" > {output.reference}
-
-		awk \'!/^>/ {{ printf "%s", $0; n = "\\n" }} /^>/ {{ print n $0; n = "" }} END {{ printf "%s", n }}\' {output.reference} | sed 's/^ //' | sed 's/\s.*//' > {output.reference_oneliner}
-
-		cat {output.reference_oneliner} {input.multi_fasta} > {output.multi_fasta_with_ref}
-
-		ref_name=`head -1 {input.ref} | sed 's/>//' | sed 's/\s.*//'`
-		(raxmlHPC -o $ref_name -n {params.name} -s {output.multi_fasta_with_ref} -m {params.method} -p {params.p} -w {params.dir}) 2> {log}
-
-		"""
+                """
+                ref_name=`head -1 {input.ref} | sed 's/>//' | sed 's/\s.*//'`
+                (raxmlHPC -o $ref_name -n {params.name} -s {input.multi_fasta_with_ref} -m {params.method} -p {params.p} -w {params.dir}) 2> {log}
+                """
 
 
 ### START OF CLONALFRAME ANALYSIS
