@@ -393,7 +393,7 @@ rule generate_multi_fasta_reference:
 # Create another RAxML tree with the reference genome
 rule generate_raxml_tree_with_reference:
 	input:
-		multi_fasta=expand("{outdir}/output_files/{name}_final_filtered.fa", outdir=config["output_dir"], name=config["name"]),
+		multi_fasta_with_ref=expand("{outdir}/output_files/{name}_final_filtered_incl_reference.fa", outdir=config["output_dir"], name=config["name"]),
 		ref=consensus_fasta_list
 	output:
 		raxml=expand("{outdir}/output_files/RAxML_bestTree.{name}", outdir=config["output_dir"], name=name_with_ref),
