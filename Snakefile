@@ -258,7 +258,7 @@ rule AF_by_position_calculation:
 
 input_AF = [''.join((output,'/temp/',file,'_temp_pos')) for file in IDS]
 
-# Filtering the VCF file by AF. All variants with AF>80% are excluded
+# Filtering the VCF file by AF. All variants with reference AF<80% in all genomes are excluded
 rule filter_by_AF:
 	input:
 		temp_pos=input_AF,
