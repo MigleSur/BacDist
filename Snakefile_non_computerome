@@ -136,7 +136,7 @@ rule filter_out_same_variants:
 		"Filtering SNPs for all provided samples: Excluding variants shared by all isolates."
 	shell:
 		"""
-		snpsift=/services/tools/snpeff/4.3r/snpEff/SnpSift.jar
+		snpsift=$(which snpEff)/SnpSift.jar
 		java -jar $snpsift filter {params.filter} {input} > {output}
 	
 		"""
@@ -190,7 +190,7 @@ rule filter_coverage:
 		"Filtering SNPs for all provided samples: Excluding variants where at least one isolate has low (<10X) coverage."
 	shell:
 		"""
-		snpsift=/services/tools/snpeff/4.3r/snpEff/SnpSift.jar
+		snpsift=$(which snpEff)/SnpSift.jar
 		cat {input.vcf} | java -jar $snpsift intervals -x {input.low_qual} > {output.temp_vcf}
 		cp {output.temp_vcf} {input.vcf}
 		"""
@@ -249,7 +249,7 @@ rule filter_by_AF:
 		len2=sample_no2
 	shell:
 		"""
-		
+		snpsift=$(which snpEff)/SnpSift.jar
 		cat {input.temp_pos} | awk '$3<0.8' | cut -d " " -f 1-2 | sort | uniq -c | awk -v num={params.len} -v num2={params.len2} '$1==num || $1==num2 {{print $2,$3-1,$3}}'  | tr " " "\t" > {output.positions}
 
 		cat {input.vcf} | java -jar $snpsift intervals -x {output.positions} > {output.vcf}
