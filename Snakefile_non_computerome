@@ -326,7 +326,7 @@ rule calculate_snp_distances:
 	output:
 		snp_dist=expand("{outdir}/output_files/{name}_snp_dist.tsv", outdir=config["output_dir"], name=config["name"])
 	params:
-		snp_dists="/home/projects/cu_10047/people/misur/snp-dists/snp-dists"
+		snp_dists=$(which snp-dists)/snp-dists
 	message:
 		"Creating SNP distance matrix"
 	shell:
@@ -531,7 +531,7 @@ rule calculate_snp_distances_clonalframe:
         output:
                 snp_dist=expand("{outdir}/output_files/{name}_no_recombination_snp_dist.tsv", outdir=config["output_dir"], name=config["name"])
         params:
-                snp_dists="/home/projects/cu_10047/people/misur/snp-dists/snp-dists"
+                snp_dists=$(which snp-dists)/snp-dists
         message:
                 "Creating SNP distance matrix which excludes the variants in the recombination sites"
         shell:
